@@ -6,7 +6,7 @@ import debounce from 'debounce';
 import { connect } from 'react-redux';
 import { isEmpty } from 'lodash';
 
-import { getGameStatus, postMessage } from '../../Redux/game/game';
+import { getGameStatus, postMessage, resign, reset } from '../../Redux/game/game';
 import auth from '../../blockchain/auth';
 
 class Game extends React.Component {
@@ -15,6 +15,7 @@ class Game extends React.Component {
   }
 
   componentDidMount() {
+    this.props.reset();
     const gameId = Number(this.props.match.params.gameId);
     this.getGameStatus = debounce(() => this.props.getGameStatus(gameId), 500);
     this.getGameStatus();
@@ -39,30 +40,40 @@ class Game extends React.Component {
 
   leaveGame = () => this.props.history.push('/lobby')
 
+  confirmResign = () => {
+    if (window.confirm("Are you sure you want to resign?")) {
+      this.props.resign(Number(this.props.match.params.gameId));
+    }
+  }
+
   render() {
-    const { messages, fulfilledMessages, pendingMessages, game } = this.props;
+    const { messages, fulfilledMessages, pendingMessages, game, resigning } = this.props;
     const messagesToShow = [...messages, ...fulfilledMessages, ...pendingMessages];
     const currentUser = auth.getCurrentUser();
 
     return (
-      <Row style={{ height: '100vh' }}>
-        <Col lg="9" className="py-3">
-
+      <Row>
+        <Col lg="9" className="py-3" style={{ minHeight: '100vh' }}>
+          {!isEmpty(game) && game.finished !== -1 && (
+            <div style={{ height: '100%' }} className="d-flex justify-content-center align-items-center">
+              <div>Game has ended. Winner: {game.winner === 1 ? game.player_1_name : game.player_2_name}!</div>
+            </div>
+          )}
         </Col>
-        <Col lg="3" className="d-flex flex-column justify-content-end py-3 col-lg-3" style={{ maxHeight: '100%', background: 'rgba(0,0,0,0.2)' }}>
+        <Col lg="3" className="d-flex flex-column justify-content-end py-3 col-lg-3" style={{ maxHeight: '100vh', background: 'rgba(0,0,0,0.2)' }}>
           <div className="flex-grow-0 d-flex justify-content-between mb-3">
             {
               !isEmpty(game) && (
-                game.player_1 !== currentUser.id && game.player_2 !== currentUser.id
+                game.finished !== -1 || (game.player_1 !== currentUser.id && game.player_2 !== currentUser.id)
                   ? (
                     <Button color="outline-danger" onClick={this.leaveGame}>
                       Leave Game
                   </Button>
                   )
                   : (
-                    <Button color="outline-danger">
+                    <Button color="outline-danger" disabled={resigning} onClick={this.confirmResign}>
                       Resign
-                  </Button>
+                    </Button>
                   )
               )
             }
@@ -86,7 +97,7 @@ class Game extends React.Component {
             </div>
           </div>
           <Form className="flex-grow-0 mt-3" onSubmit={this.postMessage}>
-            <Input type="text" autoComplete="message" value={this.state.message} onChange={this.onMessageChanged} />
+            <Input type="text" autoComplete="message" placeholder="Chat..." value={this.state.message} onChange={this.onMessageChanged} />
           </Form>
         </Col>
       </Row>
@@ -94,10 +105,11 @@ class Game extends React.Component {
   }
 }
 
-const mapDispatchToProps = { getGameStatus, postMessage };
+const mapDispatchToProps = { getGameStatus, postMessage, resign, reset };
 const mapAppStateToProps = ({ game }) => {
-  const { loading, messages, pendingMessages, fulfilledMessages, game: gameInfo } = game;
+  const { loading, resigning, messages, pendingMessages, fulfilledMessages, game: gameInfo } = game;
   return {
+    resigning,
     loading,
     game: gameInfo,
     messages,

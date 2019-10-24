@@ -29,12 +29,6 @@ export const joinGame = (userId) => {
   return rq.postAndWaitConfirmation();
 }
 
-export const getWaitList = () => blockchain.getGtx().query("get_wait_list", {});
-
-export const getGameList = () => blockchain.getGtx().query("get_active_games", {});
-
-export const getLobbyStatus = () => blockchain.getGtx().query("get_lobby_status", {});
-
 export const postMessage = (gameId, message) => {
   const { id, privKey, pubKey } = auth.getCurrentUser();
   const rq = blockchain.getGtx().newTransaction([pubKey]);
@@ -42,6 +36,16 @@ export const postMessage = (gameId, message) => {
   rq.sign(privKey, pubKey);
   return rq.postAndWaitConfirmation();
 }
+
+export const resign = (gameId) => {
+  const { id, privKey, pubKey } = auth.getCurrentUser();
+  const rq = blockchain.getGtx().newTransaction([pubKey]);
+  rq.addOperation("resign", gameId, id, crypto.randomBytes(32));
+  rq.sign(privKey, pubKey);
+  return rq.postAndWaitConfirmation();
+}
+
+export const getLobbyStatus = () => blockchain.getGtx().query("get_lobby_status", {});
 
 export const getGameStatus = (gameId) => {
   return blockchain.getGtx().query("get_game_status", { game: gameId });

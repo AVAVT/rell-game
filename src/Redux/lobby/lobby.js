@@ -7,6 +7,7 @@ import {
 } from '../helpers';
 
 export const ACTION_TYPES = {
+  RESET: 'lobby/RESET',
   FETCH_STATUS: 'lobby/FETCH_STATUS',
   LOOK_FOR_GAME: 'lobby/LOOK_FOR_GAME',
   STOP_LOOKING_FOR_GAME: 'lobby/STOP_LOOKING_FOR_GAME',
@@ -31,6 +32,10 @@ export const joinGame = (userId) => ({
 export const getLobbyStatus = () => ({
   type: ACTION_TYPES.FETCH_STATUS,
   payload: api.getLobbyStatus()
+})
+
+export const reset = () => ({
+  type: ACTION_TYPES.RESET
 })
 
 const initialState = {
@@ -107,6 +112,8 @@ const reducer = (state = initialState, { type, payload }) => {
         sending: false,
         error: payload
       };
+    case ACTION_TYPES.RESET:
+      return initialState;
     default:
       return state;
   }

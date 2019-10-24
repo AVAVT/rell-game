@@ -1,9 +1,9 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
-import { Button, Table, Row, Col, Card, CardBody } from 'reactstrap';
+import { Button, Table, Row, Col, Card, CardBody, Progress } from 'reactstrap';
 
-import { getLobbyStatus, lookForGame, stopLookingForGame, joinGame } from '../../Redux/lobby/lobby';
+import { getLobbyStatus, lookForGame, stopLookingForGame, joinGame, reset } from '../../Redux/lobby/lobby';
 import auth from '../../blockchain/auth';
 import moment from 'moment';
 import debounce from 'debounce';
@@ -14,6 +14,7 @@ class Lobby extends React.Component {
   }
 
   componentDidMount() {
+    this.props.reset();
     this.getLobbyStatus = debounce(this.props.getLobbyStatus, 1000);
     this.getLobbyStatus();
   }
@@ -50,28 +51,7 @@ class Lobby extends React.Component {
     const { waitList, gameList, currentUser, isLookingForGame, sending } = this.props;
     return (
       <>
-        <div className="d-flex justify-content-between align-items-end py-4">
-          <div>
-            {
-              this.state.initialized && (
-                isLookingForGame ? (
-                  <Button
-                    color="outline-danger"
-                    onClick={this.quitFindGame}
-                    disabled={sending}>
-                    Stop Finding
-              </Button>
-                ) : (
-                    <Button
-                      color="primary"
-                      onClick={this.findGame}
-                      disabled={sending}>
-                      Find Game
-                </Button>
-                  )
-              )
-            }
-          </div>
+        <div className="d-flex justify-content-end align-items-end py-4">
           <div className="d-flex align-items-baseline">
             <div>Welcome, {currentUser.username}!</div>
             <Button
@@ -83,46 +63,76 @@ class Lobby extends React.Component {
           </div>
         </div>
         <Row>
-          <Col lg="6" className="mb-3 mb-lg-0">
-            <Card style={{ height: '100%' }}>
-              <CardBody>
-                <h4>Wait List</h4>
-                <hr />
-                <Table responsive borderless striped hover>
-                  <tbody>
-                    {waitList.map(waiter => <tr key={waiter.id}>
-                      <td>{moment(waiter.timestamp).fromNow()}</td>
-                      <td valign="middle">{waiter.username}</td>
-                      <td className="text-right">{waiter.id !== currentUser.id && <Button color="outline-primary" onClick={this.composeJoinHandler(waiter.id)}>Join</Button>} </td>
-                    </tr>)}
-                  </tbody>
-                </Table>
-              </CardBody>
-            </Card>
-          </Col>
-          <Col lg="6">
-            <Card style={{ height: '100%' }}>
-              <CardBody>
-                <h4>Active Games</h4>
-                <hr />
-                <Table responsive borderless striped hover>
-                  <tbody>
-                    {gameList.map(game => <tr key={game.id}>
-                      <td>{moment(game.timestamp).fromNow()}</td>
-                      <td>{game.player_1_name}</td>
-                      <td valign="middle">{game.player_2_name}</td>
-                      <td className="text-right">
-                        {
-                          game.player_1 !== currentUser.id && game.player_2 !== currentUser.id
-                            ? <Button color="outline-primary" onClick={this.composeRedirectToGameHandler(game.id)}>Spectate</Button>
-                            : <Button color="primary" onClick={this.composeRedirectToGameHandler(game.id)}>Play</Button>
-                        } </td>
-                    </tr>)}
-                  </tbody>
-                </Table>
-              </CardBody>
-            </Card>
-          </Col>
+          {
+            !this.state.initialized
+              ? <Col md={{ size: 4, offset: 4 }} className="pt-5"><Progress animated value={100} /></Col>
+              : (
+                <>
+                  <Col lg="6" className="mb-3 mb-lg-0">
+                    <Card style={{ height: '100%' }}>
+                      <CardBody>
+                        <div className="d-flex justify-content-between align-items-baseline">
+                          <h4>Wait List</h4>
+                          {
+                            this.state.initialized && (
+                              isLookingForGame ? (
+                                <Button
+                                  color="outline-danger"
+                                  onClick={this.quitFindGame}
+                                  disabled={sending}>
+                                  Stop Finding
+                      </Button>
+                              ) : (
+                                  <Button
+                                    color="primary"
+                                    onClick={this.findGame}
+                                    disabled={sending}>
+                                    Find Game
+                          </Button>
+                                )
+                            )
+                          }
+                        </div>
+
+                        <hr />
+                        <Table responsive borderless striped hover>
+                          <tbody>
+                            {waitList.map(waiter => <tr key={waiter.id}>
+                              <td>{moment(waiter.timestamp).fromNow()}</td>
+                              <td valign="middle">{waiter.username}</td>
+                              <td className="text-right">{waiter.id !== currentUser.id && <Button color="outline-primary" onClick={this.composeJoinHandler(waiter.id)}>Join</Button>} </td>
+                            </tr>)}
+                          </tbody>
+                        </Table>
+                      </CardBody>
+                    </Card>
+                  </Col>
+                  <Col lg="6">
+                    <Card style={{ height: '100%' }}>
+                      <CardBody>
+                        <h4>Active Games</h4>
+                        <hr />
+                        <Table responsive borderless striped hover>
+                          <tbody>
+                            {gameList.map(game => <tr key={game.id}>
+                              <td>{moment(game.timestamp).fromNow()}</td>
+                              <td>{game.player_1_name}</td>
+                              <td valign="middle">{game.player_2_name}</td>
+                              <td className="text-right">
+                                {
+                                  game.player_1 !== currentUser.id && game.player_2 !== currentUser.id
+                                    ? <Button color="outline-primary" onClick={this.composeRedirectToGameHandler(game.id)}>Spectate</Button>
+                                    : <Button color="primary" onClick={this.composeRedirectToGameHandler(game.id)}>Play</Button>
+                                } </td>
+                            </tr>)}
+                          </tbody>
+                        </Table>
+                      </CardBody>
+                    </Card>
+                  </Col>
+                </>
+              )
+          }
         </Row>
       </>
     );
@@ -130,6 +140,7 @@ class Lobby extends React.Component {
 }
 
 const mapDispatchToProps = {
+  reset,
   getLobbyStatus,
   lookForGame,
   stopLookingForGame,

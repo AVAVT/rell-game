@@ -7,8 +7,10 @@ import {
 } from '../helpers';
 
 export const ACTION_TYPES = {
+  RESET: 'game/RESET',
   FETCH_STATUS: 'game/FETCH_STATUS',
-  POST_MESSAGE: 'game/POST_MESSAGE'
+  POST_MESSAGE: 'game/POST_MESSAGE',
+  RESIGN: 'game/RESIGN'
 }
 
 export const getGameStatus = gameId => ({
@@ -28,6 +30,15 @@ export const postMessage = (gameId, message) => ({
   }
 })
 
+export const resign = (gameId) => ({
+  type: ACTION_TYPES.RESIGN,
+  payload: api.resign(gameId)
+})
+
+export const reset = () => ({
+  type: ACTION_TYPES.RESET
+})
+
 const initialState = {
   loading: false,
   messages: [],
@@ -35,6 +46,7 @@ const initialState = {
   pendingMessages: [],
   fulfilledMessages: [],
   sending: false,
+  resigning: false,
   error: null
 }
 
@@ -80,6 +92,20 @@ const reducer = (state = initialState, { type, payload, meta }) => {
         ...state,
         sending: false,
         pendingMessages: state.pendingMessages.filter(msg => msg.message !== meta.msg.message),
+        error: payload
+      }
+    case PENDING(ACTION_TYPES.RESIGN):
+      return {
+        ...state,
+        resigning: true,
+        error: null
+      }
+    case ACTION_TYPES.RESET:
+      return initialState;
+    case REJECTED(ACTION_TYPES.RESIGN):
+      return {
+        ...state,
+        resigning: false,
         error: payload
       }
     default: return state;
