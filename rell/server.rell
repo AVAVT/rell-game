@@ -8,6 +8,7 @@ class game {
   index player_2: user;
   index timestamp;
   mutable finished: timestamp = -1;
+  mutable winner: integer = -1;
 }
 
 class message {
@@ -28,6 +29,7 @@ class user_looking_for_game {
 
 operation register(pubkey, username: name){
   require( is_signer(pubkey) );
+  require(not exists(user@?{.username == username}), "Username already exists");
   create user(pubkey, username);
 }
 
@@ -62,6 +64,15 @@ operation post_message (game, user, message: text, nop: byte_array) {
   create message (game, user, message, op_context.last_block_time);
 }
 
+operation resign(game, user, nop: byte_array){
+  require( is_signer(user.pubkey) );
+  require(game.finished == -1);
+  var winner = 0;
+  if(user == game.player_1) winner = 2;
+  if(user == game.player_2) winner = 1;
+  update game(winner = winner, finished = op_context.last_block_time);
+}
+
 /***********
  * Queries *
  ***********/
@@ -87,6 +98,7 @@ query get_lobby_status(){
 }
 
 query get_game_status(game){
+  val game_info = (player_1 = game.player_1, player_1_name = game.player_1.username, player_2 = game.player_2, player_2_name = game.player_2.username, finished=game.finished, winner = game.winner);
   val messages = message@*{game}(author_name = .author.username, message = .message, sort timestamp = .timestamp);
-  return (messages = messages);
+  return (game = game_info, messages = messages);
 }

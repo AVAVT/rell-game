@@ -66,12 +66,12 @@ class Game extends React.Component {
               !isEmpty(game) && (
                 game.finished !== -1 || (game.player_1 !== currentUser.id && game.player_2 !== currentUser.id)
                   ? (
-                    <Button color="outline-danger" onClick={this.leaveGame}>
+                    <Button color="outline-secondary" onClick={this.leaveGame}>
                       Leave Game
                   </Button>
                   )
                   : (
-                    <Button color="outline-danger" disabled={resigning} onClick={this.confirmResign}>
+                    <Button color="outline-secondary" disabled={resigning} onClick={this.confirmResign}>
                       Resign
                     </Button>
                   )

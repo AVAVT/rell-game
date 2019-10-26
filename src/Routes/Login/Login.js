@@ -1,5 +1,7 @@
 import React from 'react';
-import { Row, Col, Card, CardBody, FormGroup, Form, Button, Input, Label } from 'reactstrap';
+import {
+  Row, Col, Card, CardBody, FormGroup, Form, Button, Input, Label, InputGroup, InputGroupAddon
+} from 'reactstrap';
 import { Link, withRouter } from 'react-router-dom';
 import { isEmpty } from 'lodash';
 
@@ -56,20 +58,24 @@ class Login extends React.Component {
                 <h1 className="mb-3">Welcome!</h1>
                 <Form onSubmit={this.login} className="row">
                   <FormGroup className="col mb-0 flex-grow-1">
-                    <Input type="password" name="loginPrivKey" required placeholder="Private Key..." value={loginPrivKey} onChange={this.onFieldChanged} />
+                    <InputGroup>
+                      <Input type="password" name="loginPrivKey" required placeholder="Private Key..." value={loginPrivKey} onChange={this.onFieldChanged} />
+                      <InputGroupAddon addonType="append">
+                        <Button style={{ minWidth: '7em' }} className="btn-block" color="primary" type="submit" disabled={updating}>Login</Button>
+                      </InputGroupAddon>
+                    </InputGroup>
                   </FormGroup>
-                  <div className="col flex-grow-0" style={{ minWidth: '8em' }}>
-                    <Button className="btn-block" color="primary" type="submit" disabled={updating}>Login</Button>
-                  </div>
                 </Form>
                 <div className="text-muted text-center my-3">-- or --</div>
                 <Form onSubmit={this.register} className="row">
                   <FormGroup className="col mb-0 flex-grow-1">
-                    <Input type="text" readOnly={privKey} required name="username" placeholder="Username..." value={username} onChange={this.onFieldChanged} />
+                    <InputGroup>
+                      <Input type="text" readOnly={privKey} required name="username" placeholder="Username..." value={username} onChange={this.onFieldChanged} />
+                      <InputGroupAddon addonType="append">
+                        <Button style={{ minWidth: '7em' }} className="btn-block" color="primary" type="submit" disabled={updating}>Register</Button>
+                      </InputGroupAddon>
+                    </InputGroup>
                   </FormGroup>
-                  <div className="col flex-grow-0" style={{ minWidth: '8em' }}>
-                    <Button className="btn-block" color="primary" type="submit" disabled={updating}>Register</Button>
-                  </div>
                 </Form>
               </>)
               : (
