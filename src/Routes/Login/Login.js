@@ -66,7 +66,7 @@ class Login extends React.Component {
                     </InputGroup>
                   </FormGroup>
                 </Form>
-                <div className="text-muted text-center my-3">-- or --</div>
+                <div className="text-center my-3">-- or --</div>
                 <Form onSubmit={this.register} className="row">
                   <FormGroup className="col mb-0 flex-grow-1">
                     <InputGroup>

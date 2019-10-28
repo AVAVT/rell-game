@@ -1,5 +1,4 @@
 import pcl from 'postchain-client';
-
 import blockchain from './blockchain';
 
 const auth = (function () {
@@ -68,5 +67,5 @@ const auth = (function () {
 
 export default auth;
 
-// 79b112a4ea299eef788366d9f4dfb69bed58e892344e52525709ea14cc0da6bf
-// 26fd363f90c1c6b103a01a22e9921d62118593e3bde5f4da09f947213bb62126
+// c8cd7bf8c3240982097d2e5dff79617980e6e13e9b2adadefe7f9adea558395d
+// 5341a0606c2364dea4b981ae41db519b326fb70d53d04524e47f60215110f36f

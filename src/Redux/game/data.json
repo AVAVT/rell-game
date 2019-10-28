@@ -1,0 +1,277 @@
+{
+  "deck": [
+    {
+      "card_index": 0,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 1,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 2,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 3,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 4,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 5,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 6,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 7,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 8,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 9,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 10,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 11,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 12,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 13,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 14,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 15,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 16,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 17,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 18,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 19,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 20,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 21,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 22,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 23,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 24,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 25,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 26,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 27,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 28,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 29,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 30,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 31,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 32,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 33,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 34,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 35,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 36,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 37,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 38,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 39,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 40,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 41,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 42,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 43,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 44,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 45,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 46,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 47,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 48,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 49,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 50,
+      "encrypted": "",
+      "reveal_value": ""
+    },
+    {
+      "card_index": 51,
+      "encrypted": "",
+      "reveal_value": ""
+    }
+  ],
+  "game": {
+    "finished": -1,
+    "player_1": 1,
+    "player_1_name": "AVAVT",
+    "player_2": 2,
+    "player_2_name": "Arieta",
+    "winner": -1
+  },
+  "game_state": {
+    "phrase": -2,
+    "top_card_index": 0
+  },
+  "messages": []
+}
