@@ -1,0 +1,69 @@
+/***********
+ * Queries *
+ ***********/
+query ping() = "pong";
+
+query get_user(user_pubkey: text){
+  val pubkey = byte_array(user_pubkey);
+  return user @? {pubkey} (.username, .pubkey, id=user);
+}
+
+query get_wait_list(){
+  return user_looking_for_game@*{ } ( id = .user, username = .user.username, sort timestamp = .timestamp );
+}
+
+query get_active_games(){
+  return game@*{.finished==-1}(id = game, player_1 =.player_1, player_1_name = .player_1.username, player_2 = .player_2, player_2_name = .player_2.username, sort timestamp = .timestamp);
+}
+
+query get_lobby_status(){
+  val wait_list = user_looking_for_game@*{ } ( id = .user, username = .user.username, sort timestamp = .timestamp );
+  val game_list = game@*{.finished == -1}(id = game, player_1 =.player_1, player_1_name = .player_1.username, player_2 = .player_2, player_2_name = .player_2.username, sort timestamp = .timestamp);
+  return (wait_list = wait_list, game_list = game_list);
+}
+
+query get_card_fragments(game){
+  var fragments = list<list<text>>();
+  
+  for(player_index in range(2)){
+    val player: user = if(player_index == 0) game.player_1 else game.player_2;
+    var player_secrets = card_secret@*{game, .user == player}(sort card_index = .card_index, fragment = .fragment);  
+    var player_fragments = list<text>();
+    for(secret in player_secrets){
+      player_fragments.add(secret.fragment);
+    }
+    fragments.add(player_fragments);
+  }
+  return fragments;
+}
+
+// TODO splits this into different queries depends on phase
+query get_game_status(game){
+  val game_info = (id = game, player_1 = game.player_1, player_1_name = game.player_1.username, player_2 = game.player_2, player_2_name = game.player_2.username, finished=game.finished, winner = game.winner);
+  val messages = message@*{game}(author_name = .author.username, message = .message, sort timestamp = .timestamp);
+  val game_state = game_state@{game}(top_card_index = .top_card_index, phrase = .phrase, round = .round);
+  val deck = deck_card @* {game}(sort card_index = .card_index, encrypted = .encrypted, reveal_value = .reveal_value);
+  val player_monies = player_money @* {game}(id=.user, amount = .amount);
+  val player_bets = player_bet@*{game, .round == game_state.round}(id=.user, amount = .amount);
+  
+  var cards_in_player_hand = list<list<(card_index:integer, is_open: boolean, hand_index:integer)>>();
+  for(i in range(3)){
+    val cards = card_in_player_hand@*{game, .round == game_state.round, .player_index == i}(card_index = .card_index, is_open = .is_open, sort hand_index = .hand_index);
+    cards_in_player_hand.add(cards);
+  }
+  
+  var card_decrypts = list<list<(card_index: integer, decrypt_key: text)>>();
+  card_decrypts.add(card_secret@*{game, .user == game.player_1}(sort card_index = .card_index, decrypt_key = .decrypt_key ));
+  card_decrypts.add(card_secret@*{game, .user == game.player_2}(sort card_index = .card_index, decrypt_key = .decrypt_key ));
+  
+  return (
+    game = game_info, 
+    messages = messages, 
+    game_state = game_state, 
+    deck = deck, 
+    player_monies = player_monies, 
+    player_bets = player_bets,
+    cards_in_player_hand = cards_in_player_hand,
+    card_decrypts = card_decrypts
+  );
+}

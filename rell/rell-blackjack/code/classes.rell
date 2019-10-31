@@ -1,0 +1,71 @@
+class user { 
+  key pubkey; 
+  key username: text; 
+}
+
+class game {
+  index player_1: user;
+  index player_2: user;
+  index timestamp;
+  mutable finished: timestamp = -1;
+  mutable winner: integer = -1;
+}
+
+class message {
+  index game;
+  index author: user;
+  index timestamp;
+  message: text;
+}
+
+class user_looking_for_game {
+  key user;
+  index timestamp;
+}
+
+/*
+ phrase:
+ -4 = player 2 shuffle
+ -3 = player 1 shuffle
+ -2 = player 2 lock
+ -1 = player 1 lock
+ 0 = dealing
+ 1 = player 1 turn
+ 2 = player 2 turn
+*/
+class game_state {
+  key game;
+  mutable top_card_index: integer = 0;
+  mutable phrase: integer = -4;
+  mutable round: integer = 1;
+}
+
+class card_secret {
+  key game, user, card_index: integer;
+  fragment: text;
+  mutable decrypt_key: text = "";
+}
+
+class deck_card {
+  key game, card_index: integer;
+  mutable encrypted: text = "";
+  mutable reveal_value: text = "";
+}
+
+class card_in_player_hand {
+  key game, card_index: integer;
+  index round: integer;
+  index player_index: integer;
+  hand_index: integer;
+  mutable is_open: boolean = true;
+}
+
+class player_bet {
+  key game, user, round: integer;
+  amount: integer;
+}
+
+class player_money {
+  key game, user;
+  mutable amount: integer = 100;
+}

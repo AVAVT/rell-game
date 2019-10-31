@@ -1,0 +1,10 @@
+function value_from_card_name(card_name: text) : integer{
+  require(card_name != "");
+  
+  if(card_name.size() == 3) return 10;
+  for(i in range(9)){
+    val value = i + 1;
+    if(card_name[0].compare_to(value.to_text()) == 0) return value;
+  }
+  return 10;
+}
