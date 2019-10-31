@@ -21,6 +21,11 @@ const auth = (function () {
     }
   }
 
+  const loginFromSession = async () => {
+    const session = sessionStorage.getItem('userLogin');
+    if (session) await auth.login(session);
+  }
+
   const login = async privKeyAsText => {
     try {
       const privKey = Buffer.from(privKeyAsText, 'hex');
@@ -37,6 +42,8 @@ const auth = (function () {
         privKey
       };
 
+      sessionStorage.setItem('userLogin', privKeyAsText);
+
       return {
         username,
         pubKey: pubKeyAsText,
@@ -50,6 +57,7 @@ const auth = (function () {
 
   const logout = () => {
     currentUser = {};
+    sessionStorage.removeItem('userLogin');
   }
 
   const isLoggedIn = () => !!currentUser.privKey;
@@ -59,6 +67,7 @@ const auth = (function () {
   return {
     register,
     login,
+    loginFromSession,
     logout,
     isLoggedIn,
     getCurrentUser
@@ -67,5 +76,5 @@ const auth = (function () {
 
 export default auth;
 
-// c8cd7bf8c3240982097d2e5dff79617980e6e13e9b2adadefe7f9adea558395d
-// 5341a0606c2364dea4b981ae41db519b326fb70d53d04524e47f60215110f36f
+// 1c0ec4c890f6c444df33979f11214001699cd60e1c5d6bd63a68eb9bcbb0c7f8
+// c7f85e1360e32a6b128f09f957e2e50f7d571a949d96055e0209e8301c10042d

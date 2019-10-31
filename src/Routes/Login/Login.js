@@ -15,6 +15,10 @@ class Login extends React.Component {
     updating: false
   }
 
+  componentDidMount() {
+    if (auth.isLoggedIn()) this.props.history.push('/lobby');
+  }
+
   register = async e => {
     e.preventDefault();
     if (!this.state.username) return;

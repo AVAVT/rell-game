@@ -67,6 +67,22 @@ export const placeBet = (gameId, round, amount) => {
   return rq.postAndWaitConfirmation();
 }
 
+export const hit = (gameId) => {
+  const { id, privKey, pubKey } = auth.getCurrentUser();
+  const rq = blockchain.getGtx().newTransaction([pubKey]);
+  rq.addOperation("player_hit", gameId, id, crypto.randomBytes(32));
+  rq.sign(privKey, pubKey);
+  return rq.postAndWaitConfirmation();
+}
+
+export const stand = (gameId) => {
+  const { id, privKey, pubKey } = auth.getCurrentUser();
+  const rq = blockchain.getGtx().newTransaction([pubKey]);
+  rq.addOperation("player_stand", gameId, id, crypto.randomBytes(32));
+  rq.sign(privKey, pubKey);
+  return rq.postAndWaitConfirmation();
+}
+
 export const getCardFragments = (gameId) => {
   return blockchain.getGtx().query("get_card_fragments", { game: gameId });
 }
@@ -75,6 +91,22 @@ export const postCardFragments = (gameId, fragments) => {
   const { id, privKey, pubKey } = auth.getCurrentUser();
   const rq = blockchain.getGtx().newTransaction([pubKey]);
   rq.addOperation("post_card_fragments", gameId, id, fragments);
+  rq.sign(privKey, pubKey);
+  return rq.postAndWaitConfirmation();
+}
+
+export const postCardSecret = (gameId, cardIndex, decrypt) => {
+  const { id, privKey, pubKey } = auth.getCurrentUser();
+  const rq = blockchain.getGtx().newTransaction([pubKey]);
+  rq.addOperation("post_card_secret", gameId, id, cardIndex, decrypt);
+  rq.sign(privKey, pubKey);
+  return rq.postAndWaitConfirmation();
+}
+
+export const postCardReveal = (gameId, cardIndex, cardReveal) => {
+  const { id, privKey, pubKey } = auth.getCurrentUser();
+  const rq = blockchain.getGtx().newTransaction([pubKey]);
+  rq.addOperation("post_card_reveal", gameId, id, cardIndex, cardReveal);
   rq.sign(privKey, pubKey);
   return rq.postAndWaitConfirmation();
 }

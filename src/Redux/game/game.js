@@ -8,7 +8,17 @@ import {
   FULFILLED
 } from '../helpers';
 
-import { newGame, loadGame, createCardCodeWords, initialShuffle, shuffleDeck, encryptCards, getSelf } from '../../blockchain/game-logic';
+import {
+  newGame,
+  loadGame,
+  createCardCodeWords,
+  initialShuffle,
+  shuffleDeck,
+  encryptCards,
+  getSelf,
+  updateOpponentDecrypts,
+  decryptCardToName
+} from '../../blockchain/game-logic';
 
 export const ACTION_TYPES = {
   RESET: 'game/RESET',
@@ -17,6 +27,8 @@ export const ACTION_TYPES = {
   POST_MESSAGE: 'game/POST_MESSAGE',
   PASS_SHUFFLED_DECK: 'game/PASS_SHUFFLED_DECK',
   PLACE_BET: 'game/PLACE_BET',
+  HIT: 'game/HIT',
+  STAND: 'game/STAND',
   RESIGN: 'game/RESIGN'
 }
 
@@ -31,9 +43,11 @@ export const getGameStatus = gameId => async (dispatch, getState) => {
     payload: api.getGameStatus(gameId)
   });
 
-  const state = getState().game;
-
-  performAutomaticResponse(dispatch, state, gameId, result.value);
+  const newGameState = result.value;
+  if (isPlayer1(newGameState.game) || isPlayer2(newGameState.game)) {
+    const state = getState().game;
+    performAutomatedResponse(dispatch, state, gameId, result.value);
+  }
 
   return result;
 }
@@ -47,9 +61,10 @@ export const getCardFragments = gameId => async (dispatch, getState) => {
   const data = result.value;
   const state = getState().game;
 
+  const currentUser = auth.getCurrentUser();
   var self = getSelf();
   if (isEmpty(self)) {
-    const cachedData = JSON.parse(localStorage.getItem('gameSecrets') || '{}');
+    const cachedData = JSON.parse(localStorage.getItem(`gameSecrets_${currentUser.id}`) || '{}');
     const dataCached = !isEmpty(cachedData) && cachedData.gameId === state.game.id;
     const data = dataCached
       ? loadGame(cachedData.self, cachedData.config)
@@ -57,7 +72,7 @@ export const getCardFragments = gameId => async (dispatch, getState) => {
     self = data.self;
 
     if (!dataCached) {
-      localStorage.setItem('gameSecrets', JSON.stringify({ self: data.self, config: data.config, gameId: state.game.id }));
+      localStorage.setItem(`gameSecrets_${currentUser.id}`, JSON.stringify({ self: data.self, config: data.config, gameId: state.game.id }));
     }
   }
 
@@ -101,30 +116,66 @@ export const placeBet = (gameId, round, amount) => ({
   }
 });
 
+export const hit = gameId => ({
+  type: ACTION_TYPES.HIT,
+  payload: api.hit(gameId)
+});
+
+export const stand = gameId => ({
+  type: ACTION_TYPES.STAND,
+  payload: api.stand(gameId)
+});
+
 export const reset = () => ({
   type: ACTION_TYPES.RESET
-})
+});
 
+export const isPlayer1 = gameInfo => auth.getCurrentUser().id === gameInfo.player_1;
+export const isPlayer2 = gameInfo => auth.getCurrentUser().id === gameInfo.player_2;
 
-const performAutomaticResponse = async (dispatch, state, gameId, gameState) => {
+const performAutomatedResponse = (dispatch, appGameState, gameId, gameState) => {
   if (
-    !state.pendingActions[PENDING_TYPES.PASS_SHUFFLED_DECK]
-    && !isEmpty(state.cardCodewords)
-    && ((gameState.game_state.phrase === -4 && auth.getCurrentUser().id === gameState.game.player_2)
-      || (gameState.game_state.phrase === -3 && auth.getCurrentUser().id === gameState.game.player_1))) {
+    !appGameState.pendingActions[PENDING_TYPES.PASS_SHUFFLED_DECK]
+    && !isEmpty(appGameState.cardCodewords)) {
+    performAutomatedShufflingPhrase(dispatch, gameId, gameState);
+  }
+
+  var self = getSelf();
+  if (!isEmpty(self)) {
+    for (const playerHand of gameState.cards_in_player_hand) {
+      for (const cardInHand of playerHand) {
+        if (cardInHand.is_open && !gameState.deck[cardInHand.card_index].reveal_value) {
+          api.postCardSecret(gameId, cardInHand.card_index, self.keyPairs[cardInHand.card_index].privateKey);
+          if (!isEmpty(gameState.card_decrypts[1 - appGameState.myPlayerIndex][cardInHand.card_index].decrypt_key)) {
+            updateOpponentDecrypts(gameState.card_decrypts[1 - appGameState.myPlayerIndex]);
+            try {
+              const revealValue = decryptCardToName(gameState.deck, cardInHand.card_index);
+              api.postCardReveal(gameId, cardInHand.card_index, revealValue);
+            } catch (e) {
+              console.error(e);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+const performAutomatedShufflingPhrase = async (dispatch, gameId, gameState) => {
+  const phrase = gameState.game_state.phrase;
+  const receivedDeck = gameState.deck;
+  if ((phrase === -4 && isPlayer2(gameState.game))
+    || (phrase === -3 && isPlayer1(gameState.game))) {
     try {
-      await shuffleAndPassDeck(dispatch, gameId, gameState.deck, gameState.game_state.phrase === -4);
+      await shuffleAndPassDeck(dispatch, gameId, receivedDeck, phrase === -4);
     } catch (e) {
       console.error(e);
       alert('An error occured, please refresh the page to try again.')
     }
   }
 
-  if (
-    !state.pendingActions[PENDING_TYPES.PASS_SHUFFLED_DECK]
-    && !isEmpty(state.cardCodewords)
-    && ((gameState.game_state.phrase === -2 && auth.getCurrentUser().id === gameState.game.player_2)
-      || (gameState.game_state.phrase === -1 && auth.getCurrentUser().id === gameState.game.player_1))) {
+  if ((phrase === -2 && isPlayer2(gameState.game))
+    || (phrase === -1 && isPlayer1(gameState.game))) {
     try {
       await encryptAndPassDeck(dispatch, gameId, gameState.deck);
     } catch (e) {
@@ -320,6 +371,20 @@ const reducer = (state = initialState, { type, payload, meta }) => {
       return {
         ...state,
         loadingCardFragments: false
+      };
+    case PENDING(ACTION_TYPES.HIT):
+    case PENDING(ACTION_TYPES.STAND):
+      return {
+        ...state,
+        sending: true
+      };
+    case FULFILLED(ACTION_TYPES.HIT):
+    case FULFILLED(ACTION_TYPES.STAND):
+    case REJECTED(ACTION_TYPES.HIT):
+    case REJECTED(ACTION_TYPES.STAND):
+      return {
+        ...state,
+        sending: false
       };
     default: return state;
   }

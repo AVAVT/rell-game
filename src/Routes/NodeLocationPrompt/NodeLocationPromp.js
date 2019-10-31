@@ -2,6 +2,7 @@ import React from 'react';
 import { Row, Col, Card, CardBody, Form, FormGroup, Label, Input, Button } from 'reactstrap';
 
 import blockchain from '../../blockchain/blockchain';
+import auth from '../../blockchain/auth';
 import { setNodeLocation } from '../../Redux/config/config';
 import { connect } from 'react-redux';
 
@@ -23,6 +24,7 @@ class NodeLocationPrompt extends React.Component {
     this.setState({ loading: true, success: true });
     const result = await blockchain.init(this.state.location);
     if (result === "pong") {
+      if (process.env.NODE_ENV === 'production') await auth.loginFromSession();
       this.props.setNodeLocation(this.state.location);
     }
     else {

@@ -61,10 +61,13 @@ export const createCardCodeWords = opponentFragments => {
   return cardCodewords;
 }
 
+export const updateOpponentDecrypts = decrypts => {
+  if (!isEmpty(opponent)) opponent.keyPairs = decrypts.map(key => ({ privateKey: key.decrypt_key }));
+}
+
 export const initialShuffle = () => shuffleDeck(cardCodewords.map(card => card.toString('hex')))
 
 export const shuffleDeck = deck => {
-  console.log(deck);
   return encryptDeck(
     shuffle(deck.map(card => Buffer.from(card, 'hex'))),
     Buffer.from(self.keyPairs[config.cardCount].privateKey, 'hex')
@@ -76,13 +79,22 @@ export const encryptCards = deck => encryptDeck(
   self.keyPairs.map(keyPair => Buffer.from(keyPair.privateKey, 'hex')),
 ).map(card => card.toString('hex'));
 
-export const decryptCardToName = (deck, cardIndex, opponentKeyHex) => {
-  opponent.keyPairs[cardIndex].privateKey = opponentKeyHex;
-  const cardEncrypted = deck[cardIndex];
+export const decryptCardToName = (deck, cardIndex) => {
+  const cardEncrypted = deck[cardIndex].encrypted;
   const cardDecrypted = decryptCard(
-    cardEncrypted,
+    Buffer.from(cardEncrypted, 'hex'),
     [self, opponent].map(player => Buffer.from(player.keyPairs[cardIndex].privateKey, 'hex')),
   );
 
   return cardNames[cardCodewords.findIndex(cardCodeword => cardCodeword.equals(cardDecrypted))];
+}
+
+export const valueFromCardName = cardName => {
+  if (isEmpty(cardName)) return 0;
+  if (cardName.length === 3) return 10;
+  for (let i = 0; i < 9; i++) {
+    let value = i + 1;
+    if (parseInt(cardName[0]) === value) return value;
+  }
+  return 10;
 }
