@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/rell-game/precache-manifest.581483719f684d3ce3dae068e07d5199.js"
+  "/rell-game/precache-manifest.181f856723057aa4979bc1217d642dfa.js"
 );
 
 self.addEventListener('message', (event) => {
