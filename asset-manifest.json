@@ -1,14 +1,14 @@
 {
   "files": {
     "main.css": "/rell-game/static/css/main.d42950d7.chunk.css",
-    "main.js": "/rell-game/static/js/main.e56232b7.chunk.js",
-    "main.js.map": "/rell-game/static/js/main.e56232b7.chunk.js.map",
+    "main.js": "/rell-game/static/js/main.3e6a0622.chunk.js",
+    "main.js.map": "/rell-game/static/js/main.3e6a0622.chunk.js.map",
     "runtime-main.js": "/rell-game/static/js/runtime-main.caeb6e14.js",
     "runtime-main.js.map": "/rell-game/static/js/runtime-main.caeb6e14.js.map",
     "static/js/2.63cb66b2.chunk.js": "/rell-game/static/js/2.63cb66b2.chunk.js",
     "static/js/2.63cb66b2.chunk.js.map": "/rell-game/static/js/2.63cb66b2.chunk.js.map",
     "index.html": "/rell-game/index.html",
-    "precache-manifest.dc79bbc8aa572ce393af36cae61e9a59.js": "/rell-game/precache-manifest.dc79bbc8aa572ce393af36cae61e9a59.js",
+    "precache-manifest.4c495043b424012e4af0e4266b310c16.js": "/rell-game/precache-manifest.4c495043b424012e4af0e4266b310c16.js",
     "service-worker.js": "/rell-game/service-worker.js",
     "static/css/main.d42950d7.chunk.css.map": "/rell-game/static/css/main.d42950d7.chunk.css.map"
   },
@@ -16,6 +16,6 @@
     "static/js/runtime-main.caeb6e14.js",
     "static/js/2.63cb66b2.chunk.js",
     "static/css/main.d42950d7.chunk.css",
-    "static/js/main.e56232b7.chunk.js"
+    "static/js/main.3e6a0622.chunk.js"
   ]
 }
