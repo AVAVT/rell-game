@@ -5,7 +5,7 @@ body{
   color: #f8f8ff;
 }
 
-.card{
+.card, .modal{
   color: #212529;
 }
 
@@ -13,6 +13,24 @@ body{
   position: relative;
   border-radius: 5px;
   box-shadow: 0 0 2px rgba(0,0,0,0.6);
+  perspective: 1000px;
+  transition: all 0.5s ease-out; 
+  transform-style: preserve-3d;
+}
+
+.game-card-inner{
+  transition: all 0.5s ease-in-out; 
+  transform-style: preserve-3d;
+}
+
+.game-card-face, .game-card-back {
+  backface-visibility: hidden;
+}
+
+.game-card-back{
+  position: absolute;
+  left: 0;
+  transform: rotateY(180deg);
 }
 
 .lds-ellipsis {

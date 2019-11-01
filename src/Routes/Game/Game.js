@@ -6,8 +6,6 @@ import debounce from 'debounce';
 import { connect } from 'react-redux';
 import { isEmpty } from 'lodash';
 
-import './Game.scss';
-
 import {
   isPlayer1,
   isPlayer2,
@@ -24,10 +22,14 @@ import {
 } from '../../Redux/game/game';
 import auth from '../../blockchain/auth';
 import BetSlider from './Components/BetSlider';
+import RuleModal from './Components/RuleModal';
+import GameCard from './Components/GameCard';
+import { cardNames } from '../../blockchain/game-logic';
 
 class Game extends React.Component {
   state = {
-    message: ''
+    message: '',
+    showingRules: false
   }
 
   componentDidMount() {
@@ -35,6 +37,14 @@ class Game extends React.Component {
     const gameId = Number(this.props.match.params.gameId);
     this.getGameStatus = debounce(() => this.props.getGameStatus(gameId), 500);
     this.getGameStatus();
+    this.preloadImages();
+  }
+
+  preloadImages = () => {
+    cardNames.forEach((picture) => {
+      const img = new Image();
+      img.src = `${process.env.PUBLIC_URL}/images/cards/${picture}.svg`;
+    });
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -52,6 +62,8 @@ class Game extends React.Component {
       if (isEmpty(this.props.cardCodewords)) this.props.getCardFragments(this.props.game.id);
     }
   }
+
+  toggleRules = () => this.setState({ showingRules: !this.state.showingRules });
 
   onMessageChanged = e => this.setState({
     message: e.target.value
@@ -93,14 +105,23 @@ class Game extends React.Component {
     return (
       <div className="d-flex flex-column" style={{ height: '100%' }}>
         <div id="dealer-zone" className="flex-grow-1 d-flex flex-column">
-          <div className="text-center">Deck: {52 - gameState.top_card_index} cards left</div>
+          <div className="text-center pb-3">Deck: {52 - gameState.top_card_index} cards left</div>
           <div className="d-flex flex-grow-1 flex-row-reverse justify-content-center align-items-start position-relative">
             {
               gameState.phrase === 0
                 ? <h3 className="d-flex align-items-center" style={{ height: '100%' }}><div className="text-center">Round {gameState.round}<br />Place your bet</div></h3>
-                : cardsInPlayerHand[0].map((card, index) => <img key={card.card_index} className="game-card" style={{ top: `${index * 30}px`, marginRight: `${index === 0 ? 0 : -80}px` }} width="100" alt={card.revealValue || 'back'} src={`/images/cards/${card.revealValue || 'back'}.svg`} />)
+                : cardsInPlayerHand[0].map((card, index) => (
+                  <GameCard
+                    key={card.card_index}
+                    cardName={card.revealValue || 'back'}
+                    top={index * 30}
+                    orinTop={-200}
+                    orinLeft={0}
+                    style={{ marginRight: `${index === 0 ? 0 : -80}px` }}
+                  />
+                ))
             }
-            {gameState.phrase > 3 && <div className="text-success" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontWeight: 700, fontSize: '3rem', textShadow: '0 0 3px rgba(0,0,0,0.8)' }}>{handsValue[0]}</div>}
+            {gameState.phrase > 3 && <div className="text-dark" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontWeight: 700, fontSize: '3rem', textShadow: '0 0 5px #ffffff' }}>{handsValue[0]}</div>}
           </div>
         </div>
         <div id="players-zone" className="d-flex flex-grow-1">
@@ -143,9 +164,18 @@ class Game extends React.Component {
                 </div>
                 <div className="d-flex justify-content-center align-items-end position-relative">
                   {
-                    playerHand.map((card, index) => <img key={card.card_index} className="game-card" style={{ bottom: `${index * 30}px`, marginLeft: `${index === 0 ? 0 : -80}px` }} width="100" alt={card.revealValue || 'back'} src={`/images/cards/${card.revealValue || 'back'}.svg`} />)
+                    playerHand.map((card, index) => (
+                      <GameCard
+                        key={card.card_index}
+                        cardName={card.revealValue || 'back'}
+                        top={-index * 30}
+                        orinTop={-window.innerHeight / 2 - 200}
+                        orinLeft={playerIndex === 1 ? '50%' : '-50%'}
+                        style={{ marginLeft: `${index === 0 ? 0 : -80}px` }}
+                      />
+                    ))
                   }
-                  {gameState.phrase > 3 && <div className="text-success" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontWeight: 700, fontSize: '3rem', textShadow: '0 0 3px rgba(0,0,0,0.8)' }}>{handsValue[playerIndex]}</div>}
+                  {gameState.phrase > 3 && <div className="text-dark" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontWeight: 700, fontSize: '3rem', textShadow: '0 0 5px #ffffff' }}>{handsValue[playerIndex]}</div>}
                 </div>
               </div>
             )
@@ -180,59 +210,63 @@ class Game extends React.Component {
     const currentUser = auth.getCurrentUser();
 
     return (
-      <Row>
-        <Col lg="9" className="py-3 position-relative" style={{ height: '100vh' }}>
-          {!isEmpty(game) && (
-            <>
-              {gameState.phrase < 0 && this.renderLoader(gameState.phrase, game.player_1_name, game.player_2_name)}
-              {gameState.phrase >= 0 && this.renderGameView(currentUser)}
+      <>
+        <Row>
+          <Col lg="9" className="py-3 position-relative" style={{ height: '100vh' }}>
+            {!isEmpty(game) && (
+              <>
+                {gameState.phrase < 0 && this.renderLoader(gameState.phrase, game.player_1_name, game.player_2_name)}
+                {gameState.phrase >= 0 && this.renderGameView(currentUser)}
 
-              {game.finished !== -1 && (
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)' }} className="d-flex justify-content-center align-items-center">
-                  <div>Game has ended. Winner: {game.winner === 1 ? game.player_1_name : game.player_2_name}!</div>
+                {game.finished !== -1 && (
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)' }} className="d-flex justify-content-center align-items-center">
+                    <div>Game has ended. Winner: {game.winner === 1 ? game.player_1_name : game.player_2_name}!</div>
+                  </div>
+                )}
+
+                <div className="position-absolute d-flex justify-content-between" style={{ left: 10, right: 10, top: 10 }}>
+                  <Button color="outline-primary" onClick={this.toggleRules}>? Rules ?</Button>
+                  {
+                    game.finished !== -1 || (game.player_1 !== currentUser.id && game.player_2 !== currentUser.id)
+                      ? (
+                        <Button color="outline-secondary" onClick={this.leaveGame}>
+                          Leave Game
+                    </Button>
+                      ) : (
+                        <Button color="outline-secondary" disabled={resigning} onClick={this.confirmResign}>
+                          Resign
+                    </Button>
+                      )
+                  }
                 </div>
-              )}
-
-              <div className="position-absolute" style={{ right: 10, top: 10 }}>
+              </>
+            )}
+          </Col>
+          <Col lg="3" className="d-flex flex-column justify-content-end py-3 col-lg-3" style={{ maxHeight: '100vh', background: 'rgba(0,0,0,0.2)' }}>
+            <div className="flex-grow-1 d-flex flex-column justify-content-end" style={{ overflow: 'hidden' }}>
+              <div style={{ overflow: 'auto' }} ref="messages">
                 {
-                  game.finished !== -1 || (game.player_1 !== currentUser.id && game.player_2 !== currentUser.id)
-                    ? (
-                      <Button color="outline-secondary" onClick={this.leaveGame}>
-                        Leave Game
-                    </Button>
-                    ) : (
-                      <Button color="outline-secondary" disabled={resigning} onClick={this.confirmResign}>
-                        Resign
-                    </Button>
-                    )
+                  messagesToShow.length > 0
+                    ? messagesToShow.map(message => (
+                      <p
+                        style={{
+                          wordBreak: 'break-word'
+                        }}
+                        key={message.timestamp}>
+                        <b className={message.author_name === currentUser.username ? 'text-primary' : 'text-secondary'}>[{moment(message.timestamp).fromNow()}] {message.author_name}</b>:<br />{message.message}
+                      </p>
+                    ))
+                    : <div className="text-muted">Say something nice e.g. "Good game, have fun!"</div>
                 }
               </div>
-            </>
-          )}
-        </Col>
-        <Col lg="3" className="d-flex flex-column justify-content-end py-3 col-lg-3" style={{ maxHeight: '100vh', background: 'rgba(0,0,0,0.2)' }}>
-          <div className="flex-grow-1 d-flex flex-column justify-content-end" style={{ overflow: 'hidden' }}>
-            <div style={{ overflow: 'auto' }} ref="messages">
-              {
-                messagesToShow.length > 0
-                  ? messagesToShow.map(message => (
-                    <p
-                      style={{
-                        wordBreak: 'break-word'
-                      }}
-                      key={message.timestamp}>
-                      <b className={message.author_name === currentUser.username ? 'text-primary' : 'text-secondary'}>[{moment(message.timestamp).fromNow()}] {message.author_name}</b>:<br />{message.message}
-                    </p>
-                  ))
-                  : <div className="text-muted">Say something nice e.g. "Good game, have fun!"</div>
-              }
             </div>
-          </div>
-          <Form className="flex-grow-0 mt-3" onSubmit={this.postMessage}>
-            <Input type="text" autoComplete="message" placeholder="Chat..." value={this.state.message} onChange={this.onMessageChanged} />
-          </Form>
-        </Col>
-      </Row>
+            <Form className="flex-grow-0 mt-3" onSubmit={this.postMessage}>
+              <Input type="text" autoComplete="message" placeholder="Chat..." value={this.state.message} onChange={this.onMessageChanged} />
+            </Form>
+          </Col>
+        </Row>
+        <RuleModal isOpen={this.state.showingRules} onClose={this.toggleRules} />
+      </>
     );
   }
 }
