@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  BrowserRouter as Router,
+  HashRouter as Router,
   Switch,
   Route,
   Redirect
@@ -22,7 +22,7 @@ export const PrivateRoute = ({ component: Component, ...props }) => (
 class Routes extends React.Component {
   render() {
     return (
-      <Router basename={process.env.NODE_ENV === 'development' ? '' : `rell-game`}>
+      <Router>
         {
           this.props.nodeLocation
             ? (

@@ -5,6 +5,10 @@ body{
   color: #f8f8ff;
 }
 
+.table td, .table th {
+  vertical-align: baseline;
+}
+
 .card, .modal{
   color: #212529;
 }

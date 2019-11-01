@@ -40,27 +40,31 @@ class Game extends React.Component {
     this.preloadImages();
   }
 
-  preloadImages = () => {
-    cardNames.forEach((picture) => {
-      const img = new Image();
-      img.src = `${process.env.PUBLIC_URL}/images/cards/${picture}.svg`;
-    });
-  }
-
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.loadingGameStatus && !this.props.loadingGameStatus) {
       this.getGameStatus();
 
-      if (prevProps.messages.length === 0) this.refs.messages.scrollTop = this.refs.messages.scrollHeight;
+      if (prevProps.messages.length < this.props.messages.length) this.refs.messages.scrollTop = this.refs.messages.scrollHeight
 
       if (isEmpty(prevProps.game) && !isEmpty(this.props.game)) {
         if (isPlayer1(this.props.game) || isPlayer2(this.props.game)) this.props.getCardFragments(this.props.game.id);
       }
     }
 
+    if (prevProps.pendingMessages.length < this.props.pendingMessages.length) {
+      setTimeout(() => this.refs.messages.scrollTop = this.refs.messages.scrollHeight, 0);
+    }
+
     if (prevProps.loadingCardFragments && !this.props.loadingCardFragments) {
       if (isEmpty(this.props.cardCodewords)) this.props.getCardFragments(this.props.game.id);
     }
+  }
+
+  preloadImages = () => {
+    cardNames.forEach((picture) => {
+      const img = new Image();
+      img.src = `${process.env.PUBLIC_URL}/images/cards/${picture}.svg`;
+    });
   }
 
   toggleRules = () => this.setState({ showingRules: !this.state.showingRules });
@@ -132,7 +136,7 @@ class Game extends React.Component {
             const playerBet = (playerBets.find(player => player.id === playerId) || {}).amount;
             const playerMoney = (playerMonies.find(player => player.id === playerId) || {}).amount;
             const isCurrentPlayer = playerId === currentUser.id;
-            const currentPlayerIsActivePlayer = playerIndex === gameState.phrase;
+            const isActivePlayer = playerIndex === gameState.phrase;
             const playerHasUnknownCard = playerHand.some(card => card.revealValue === "")
 
             return (
@@ -146,20 +150,27 @@ class Game extends React.Component {
                       ? this.renderBettingPanel(playerMoney, playerBet)
                       : playerBet
                         ? `Betting $${playerBet}`
-                        : ' '
+                        : '...Thinking...'
                   }
                 </div>
                 <div className="d-flex justify-content-center align-items-center" style={{ height: '4.5em' }}>
                   {
-                    isCurrentPlayer && currentPlayerIsActivePlayer && !playerHasUnknownCard && (
-                      <>
-                        <Button color="primary mx-1" onClick={this.hit} disabled={sending}>Hit</Button>
-                        <Button color="primary mx-1" onClick={this.stand} disabled={sending}>Stand</Button>
-                      </>
-                    )
+                    isActivePlayer && (
+                      isCurrentPlayer
+                        ? (!playerHasUnknownCard && (
+                          <>
+                            <Button color="primary mx-1" onClick={this.hit} disabled={sending}>Hit</Button>
+                            <Button color="primary mx-1" onClick={this.stand} disabled={sending}>Stand</Button>
+                          </>
+                        ))
+                        : '...Thinking...')
                   }
-                  {gameState.phrase > 3 && isCurrentPlayer && !isReadyForNextRound && (
-                    <Button className="mx-1" color="primary" onClick={this.readyForNextRound}>Next Round</Button>
+                  {gameState.phrase > 3 && (
+                    isReadyForNextRound
+                      ? 'Ready'
+                      : (isCurrentPlayer && (
+                        <Button className="mx-1" color="primary" onClick={this.readyForNextRound}>Next Round</Button>
+                      ))
                   )}
                 </div>
                 <div className="d-flex justify-content-center align-items-end position-relative">
@@ -205,8 +216,8 @@ class Game extends React.Component {
   )
 
   render() {
-    const { messages, fulfilledMessages, pendingMessages, game, gameState, resigning } = this.props;
-    const messagesToShow = [...messages, ...fulfilledMessages, ...pendingMessages];
+    const { messages, pendingMessages, game, gameState, resigning } = this.props;
+    const messagesToShow = [...messages, ...pendingMessages];
     const currentUser = auth.getCurrentUser();
 
     return (
@@ -247,12 +258,12 @@ class Game extends React.Component {
               <div style={{ overflow: 'auto' }} ref="messages">
                 {
                   messagesToShow.length > 0
-                    ? messagesToShow.map(message => (
+                    ? messagesToShow.map((message, index) => (
                       <p
                         style={{
                           wordBreak: 'break-word'
                         }}
-                        key={message.timestamp}>
+                        key={index}>
                         <b className={message.author_name === currentUser.username ? 'text-primary' : 'text-secondary'}>[{moment(message.timestamp).fromNow()}] {message.author_name}</b>:<br />{message.message}
                       </p>
                     ))
@@ -291,7 +302,6 @@ const mapAppStateToProps = ({ game }) => {
     resigning,
     messages,
     pendingMessages,
-    fulfilledMessages,
     game: gameInfo,
     gameState,
     pendingActions,
@@ -312,7 +322,6 @@ const mapAppStateToProps = ({ game }) => {
     playerBets,
     playerMonies,
     messages,
-    fulfilledMessages,
     pendingMessages,
     pendingActions,
     cardsInPlayerHand,

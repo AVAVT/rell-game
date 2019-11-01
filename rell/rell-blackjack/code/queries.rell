@@ -39,7 +39,7 @@ query get_card_fragments(game){
 
 // TODO splits this into different queries depends on phase
 query get_game_status(game){
-  val game_info = (id = game, player_1 = game.player_1, player_1_name = game.player_1.username, player_2 = game.player_2, player_2_name = game.player_2.username, finished=game.finished, winner = game.winner);
+  val game_info = (id = game, player_1 = game.player_1, player_1_name = game.player_1.username, player_2 = game.player_2, player_2_name = game.player_2.username, finished=game.finished, winner = game.winner, reason = game.reason);
   val messages = message@*{game}(author_name = .author.username, message = .message, sort timestamp = .timestamp);
   val game_state = game_state@{game}(top_card_index = .top_card_index, phrase = .phrase, round = .round);
   val deck = deck_card @* {game}(sort card_index = .card_index, encrypted = .encrypted, reveal_value = .reveal_value);

@@ -134,7 +134,7 @@ export const stand = gameId => (dispatch, getState) => {
     type: ACTION_TYPES.STAND,
     payload: api.stand(gameId),
     meta: {
-      expectedPhrase: getState().game.phrase + 1
+      expectedPhrase: getState().game.gameState.phrase + 1
     }
   });
 }
@@ -212,7 +212,6 @@ const shuffleAndPassDeck = async (dispatch, gameId, deck, isNew) => new Promise(
     });
     resolve();
   } catch (e) {
-    console.error(e);
     reject();
   }
 });
@@ -244,7 +243,6 @@ const initialState = {
   playerBets: [],
   playerMonies: [],
   pendingMessages: [],
-  fulfilledMessages: [],
   pendingActions: {},
   sending: false,
   resigning: false,
@@ -269,6 +267,8 @@ const reducer = (state = initialState, { type, payload, meta }) => {
           revealValue: deck[cardInHand.card_index].reveal_value
         }))
       );
+      const newMessages = messages.slice(state.messages.length);
+      const pendingMessages = state.pendingMessages.filter(p => !newMessages.some(msg => msg.author_name === p.author_name && msg.message === p.message));
       const myPlayerIndex = game.player_1 === auth.getCurrentUser().id ? 0 : 1;
       const isReadyForNextRound = game_state.phrase === 0 ? false : state.isReadyForNextRound;
       return {
@@ -282,8 +282,8 @@ const reducer = (state = initialState, { type, payload, meta }) => {
         cardsInPlayerHand,
         handsValue: hands_value,
         playerMonies: player_monies,
+        pendingMessages,
         playerBets: player_bets,
-        fulfilledMessages: [],
         isReadyForNextRound
       }
     case REJECTED(ACTION_TYPES.FETCH_STATUS):
@@ -302,9 +302,7 @@ const reducer = (state = initialState, { type, payload, meta }) => {
     case FULFILLED(ACTION_TYPES.POST_MESSAGE):
       return {
         ...state,
-        sending: false,
-        pendingMessages: state.pendingMessages.filter(msg => msg.message !== meta.msg.message),
-        fulfilledMessages: [...state.fulfilledMessages, meta.msg]
+        sending: false
       }
     case REJECTED(ACTION_TYPES.POST_MESSAGE):
       return {

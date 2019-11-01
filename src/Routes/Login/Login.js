@@ -60,23 +60,23 @@ class Login extends React.Component {
             !privKey ? (
               <>
                 <h1 className="mb-3">Welcome!</h1>
-                <Form onSubmit={this.login} className="row">
-                  <FormGroup className="col mb-0 flex-grow-1">
-                    <InputGroup>
-                      <Input type="password" name="loginPrivKey" required placeholder="Private Key..." value={loginPrivKey} onChange={this.onFieldChanged} />
-                      <InputGroupAddon addonType="append">
-                        <Button style={{ minWidth: '7em' }} className="btn-block" color="primary" type="submit" disabled={updating}>Login</Button>
-                      </InputGroupAddon>
-                    </InputGroup>
-                  </FormGroup>
-                </Form>
-                <div className="text-center my-3">-- or --</div>
                 <Form onSubmit={this.register} className="row">
                   <FormGroup className="col mb-0 flex-grow-1">
                     <InputGroup>
                       <Input type="text" readOnly={privKey} required name="username" placeholder="Username..." value={username} onChange={this.onFieldChanged} />
                       <InputGroupAddon addonType="append">
                         <Button style={{ minWidth: '7em' }} className="btn-block" color="primary" type="submit" disabled={updating}>Register</Button>
+                      </InputGroupAddon>
+                    </InputGroup>
+                  </FormGroup>
+                </Form>
+                <div className="text-center my-3">-- or --</div>
+                <Form onSubmit={this.login} className="row">
+                  <FormGroup className="col mb-0 flex-grow-1">
+                    <InputGroup>
+                      <Input type="password" name="loginPrivKey" required placeholder="Private Key..." value={loginPrivKey} onChange={this.onFieldChanged} />
+                      <InputGroupAddon addonType="append">
+                        <Button style={{ minWidth: '7em' }} className="btn-block" color="primary" type="submit" disabled={updating}>Login</Button>
                       </InputGroupAddon>
                     </InputGroup>
                   </FormGroup>

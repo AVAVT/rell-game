@@ -60,7 +60,7 @@ operation resign(game, user, nop: byte_array){
   var winner = 0;
   if(user == game.player_1) winner = 2;
   if(user == game.player_2) winner = 1;
-  update game(winner = winner, finished = op_context.last_block_time);
+  update game(winner = winner, finished = op_context.last_block_time, reason = 1);
 }
 
 operation post_card_fragments(game, user, fragments: list<text>){
@@ -157,12 +157,28 @@ function end_of_round_scoring(game, game_state){
   update game_state(phrase = 4);
 }
 
+function end_game_scoring(game){
+  val player_1_money = player_money@{game, .user == game.player_1};
+  val player_2_money = player_money@{game, .user == game.player_2};
+  var winner = 0;
+  if(player_1_money.amount > player_2_money.amount) winner = 1;
+  if(player_1_money.amount < player_2_money.amount) winner = 2;
+  update game(winner = winner, finished = op_context.last_block_time, reason = 0);
+}
+
 operation ready_for_next_round(game, user, nop: byte_array){
   require( is_signer(user.pubkey) );
   val game_state = game_state@{game};
   require(game_state.phrase > 3);
   if(game_state.phrase == 4) update game_state(phrase = 5);
-  else if(game_state.phrase == 5) update game_state(round = .round + 1, phrase = 0);
+  else if(game_state.phrase == 5){
+    if(game_state.top_card_index < 47){
+      update game_state(round = .round + 1, phrase = 0);
+    }
+    else{
+      end_game_scoring(game);
+    }
+  }
 }
 
 operation pass_shuffled_deck (game, user, deck: list<text>) {
@@ -198,13 +214,11 @@ operation place_bet(game, user, round: integer, amount: integer){
 
 function deal_card_initial(game, round:integer){
   val game_state = game_state@{game};
-  if(game_state.top_card_index < 46){
     for(hand_index in range(2)){
       for(player_index in range(3)){
         deal_card_to_player(game, game_state, round, player_index, hand_index != 0 or player_index != 0);
       }
     }
-  }
 }
 
 operation player_hit(game, user, nop: byte_array){

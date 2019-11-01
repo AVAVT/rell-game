@@ -17,16 +17,21 @@ function calculate_player_hand_value(game, round: integer, player_index: integer
   for(card in cards_in_player_hand){
     val card_name = deck_card@{game, .card_index == card.card_index}.reveal_value;
     val card_values = values_from_card_name(card_name);
-    for(c in range(card_values.size())){
-      for(i in range(values.size())){
-        if(c > 0) values.add(values[i] + card_values[c]);
-        else values[i] = values[i] + card_values[c];
-      }
-    }
+    values = add_card_value_to_hand(card_values, values);
   }
   
   val value = best_hand_value(values);
   return value;
+}
+
+function add_card_value_to_hand(card_values: list<integer>, hand_values: list<integer>):list<integer>{
+  var result = list<integer>();
+  for(c in range(card_values.size())){
+    for(i in range(hand_values.size())){
+      result.add(hand_values[i] + card_values[c]);
+    }
+  }
+  return result;
 }
 
 function best_hand_value(possible_values: list<integer>): integer{
@@ -40,11 +45,11 @@ function best_hand_value(possible_values: list<integer>): integer{
   }
   if(u_21.size() > 0){
     u_21._sort();
-    return u_21[0];
+    return u_21[u_21.size()-1];
   }
   else {
     o_21._sort();
-    return o_21[o_21.size()-1];
+    return o_21[0];
   }
 }
 

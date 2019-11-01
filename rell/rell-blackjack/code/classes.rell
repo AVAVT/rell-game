@@ -3,12 +3,25 @@ class user {
   key username: text; 
 }
 
+/*
+  winner:
+  - 0: draw
+  - 1: player 1
+  - 2: player 2
+  
+  reason:
+  - 0: scoring
+  - 1: resign
+  - 2: timeout
+*/
+
 class game {
   index player_1: user;
   index player_2: user;
   index timestamp;
   mutable finished: timestamp = -1;
   mutable winner: integer = -1;
+  mutable reason: integer = -1;
 }
 
 class message {
