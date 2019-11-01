@@ -129,10 +129,16 @@ export const hit = gameId => (dispatch, getState) => {
   });
 }
 
-export const stand = gameId => ({
-  type: ACTION_TYPES.STAND,
-  payload: api.stand(gameId)
-});
+export const stand = gameId => (dispatch, getState) => {
+  return dispatch({
+    type: ACTION_TYPES.STAND,
+    payload: api.stand(gameId),
+    meta: {
+      expectedPhrase: getState().game.phrase + 1
+    }
+  });
+}
+
 
 export const readyForNextRound = gameId => ({
   type: ACTION_TYPES.READY_FOR_NEXT_ROUND,
@@ -412,7 +418,7 @@ const reducer = (state = initialState, { type, payload, meta }) => {
         sending: false,
         gameState: {
           ...state.gameState,
-          phrase: state.gameState + 1
+          phrase: meta.expectedPhrase
         }
       };
     case REJECTED(ACTION_TYPES.HIT):

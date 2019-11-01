@@ -155,6 +155,25 @@ class Game extends React.Component {
     )
   }
 
+  renderLoader = (phrase, player_1_name, player_2_name) => (
+    <div className="position-absolute d-flex flex-column justify-content-center align-items-center" style={{ top: 0, left: 0, bottom: 0, right: 0 }} >
+      <div className="lds-ellipsis">
+        <div />
+        <div />
+        <div />
+        <div />
+      </div>
+      <h4 className="px-5">
+        {
+          phrase === -4 ? `${player_2_name} is shuffling the deck very carefully...`
+            : phrase === -3 ? `${player_1_name} is shuffling the deck very carefully...`
+              : phrase === -2 ? `Players are double-checking the deck...`
+                : `Game starting soon...`
+        }
+      </h4>
+    </div>
+  )
+
   render() {
     const { messages, fulfilledMessages, pendingMessages, game, gameState, resigning } = this.props;
     const messagesToShow = [...messages, ...fulfilledMessages, ...pendingMessages];
@@ -162,36 +181,36 @@ class Game extends React.Component {
 
     return (
       <Row>
-        <Col lg="9" className="py-3" style={{ height: '100vh' }}>
+        <Col lg="9" className="py-3 position-relative" style={{ height: '100vh' }}>
           {!isEmpty(game) && (
             <>
+              {gameState.phrase < 0 && this.renderLoader(gameState.phrase, game.player_1_name, game.player_2_name)}
               {gameState.phrase >= 0 && this.renderGameView(currentUser)}
+
               {game.finished !== -1 && (
                 <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)' }} className="d-flex justify-content-center align-items-center">
                   <div>Game has ended. Winner: {game.winner === 1 ? game.player_1_name : game.player_2_name}!</div>
                 </div>
               )}
+
+              <div className="position-absolute" style={{ right: 10, top: 10 }}>
+                {
+                  game.finished !== -1 || (game.player_1 !== currentUser.id && game.player_2 !== currentUser.id)
+                    ? (
+                      <Button color="outline-secondary" onClick={this.leaveGame}>
+                        Leave Game
+                    </Button>
+                    ) : (
+                      <Button color="outline-secondary" disabled={resigning} onClick={this.confirmResign}>
+                        Resign
+                    </Button>
+                    )
+                }
+              </div>
             </>
           )}
         </Col>
         <Col lg="3" className="d-flex flex-column justify-content-end py-3 col-lg-3" style={{ maxHeight: '100vh', background: 'rgba(0,0,0,0.2)' }}>
-          <div className="flex-grow-0 d-flex justify-content-end mb-3">
-            {
-              !isEmpty(game) && (
-                game.finished !== -1 || (game.player_1 !== currentUser.id && game.player_2 !== currentUser.id)
-                  ? (
-                    <Button color="outline-secondary" onClick={this.leaveGame}>
-                      Leave Game
-                    </Button>
-                  ) : (
-                    <Button color="outline-secondary" disabled={resigning} onClick={this.confirmResign}>
-                      Resign
-                    </Button>
-                  )
-              )
-            }
-
-          </div>
           <div className="flex-grow-1 d-flex flex-column justify-content-end" style={{ overflow: 'hidden' }}>
             <div style={{ overflow: 'auto' }} ref="messages">
               {

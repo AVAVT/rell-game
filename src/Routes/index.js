@@ -22,7 +22,7 @@ export const PrivateRoute = ({ component: Component, ...props }) => (
 class Routes extends React.Component {
   render() {
     return (
-      <Router>
+      <Router basename={process.env.NODE_ENV === 'development' ? '' : `rell-game`}>
         {
           this.props.nodeLocation
             ? (

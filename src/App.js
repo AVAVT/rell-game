@@ -1,6 +1,5 @@
 import React from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import './App.css';
+import './App.scss';
 import { Provider as ReduxProvider } from "react-redux";
 
 import Routes from './Routes/';
