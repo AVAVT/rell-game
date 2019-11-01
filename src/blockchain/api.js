@@ -104,9 +104,18 @@ export const postCardSecret = (gameId, cardIndex, decrypt) => {
 }
 
 export const postCardReveal = (gameId, cardIndex, cardReveal) => {
+  console.log(`Posting cardReveal: ${cardReveal}`)
   const { id, privKey, pubKey } = auth.getCurrentUser();
   const rq = blockchain.getGtx().newTransaction([pubKey]);
   rq.addOperation("post_card_reveal", gameId, id, cardIndex, cardReveal);
+  rq.sign(privKey, pubKey);
+  return rq.postAndWaitConfirmation();
+}
+
+export const readyForNextRound = (gameId) => {
+  const { id, privKey, pubKey } = auth.getCurrentUser();
+  const rq = blockchain.getGtx().newTransaction([pubKey]);
+  rq.addOperation("ready_for_next_round", gameId, id, crypto.randomBytes(32));
   rq.sign(privKey, pubKey);
   return rq.postAndWaitConfirmation();
 }

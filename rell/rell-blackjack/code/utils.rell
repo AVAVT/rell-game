@@ -1,10 +1,57 @@
-function value_from_card_name(card_name: text) : integer{
+function values_from_card_name(card_name: text) : list<integer>{
   require(card_name != "");
   
-  if(card_name.size() == 3) return 10;
-  for(i in range(9)){
-    val value = i + 1;
-    if(card_name[0].compare_to(value.to_text()) == 0) return value;
+  if(card_name.size() == 3) return [10];
+  if(card_name[0].compare_to("1") == 0) return [1, 11];
+  for(i in range(8)){
+    val value = i + 2;
+    if(card_name[0].compare_to(value.to_text()) == 0) return [value];
   }
-  return 10;
+  return [10];
+}
+
+function calculate_player_hand_value(game, round: integer, player_index: integer): integer{
+  val cards_in_player_hand = card_in_player_hand@*{game, round, player_index};
+  
+  var values : list<integer> = [0];
+  for(card in cards_in_player_hand){
+    val card_name = deck_card@{game, .card_index == card.card_index}.reveal_value;
+    val card_values = values_from_card_name(card_name);
+    for(c in range(card_values.size())){
+      for(i in range(values.size())){
+        if(c > 0) values.add(values[i] + card_values[c]);
+        else values[i] = values[i] + card_values[c];
+      }
+    }
+  }
+  
+  val value = best_hand_value(values);
+  return value;
+}
+
+function best_hand_value(possible_values: list<integer>): integer{
+  require(possible_values.size() > 0);
+  
+  var u_21 = list<integer>();
+  var o_21 = list<integer>();
+  for(num in possible_values){
+    if(num > 21) o_21.add(num);
+    else u_21.add(num);
+  }
+  if(u_21.size() > 0){
+    u_21._sort();
+    return u_21[0];
+  }
+  else {
+    o_21._sort();
+    return o_21[o_21.size()-1];
+  }
+}
+
+function calculate_player_winning(player_hand_value : integer, dealer_hand_value : integer): integer{
+  if(player_hand_value > 21) return 0;
+  if(player_hand_value == dealer_hand_value) return 1;
+  if(player_hand_value == 21) return 3;
+  if(dealer_hand_value > 21 or dealer_hand_value < player_hand_value) return 2;
+  return 0;
 }

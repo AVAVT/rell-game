@@ -18,10 +18,12 @@ import {
   getCardFragments,
   hit,
   stand,
+  readyForNextRound,
   reset,
   PENDING_TYPES
 } from '../../Redux/game/game';
 import auth from '../../blockchain/auth';
+import BetSlider from './Components/BetSlider';
 
 class Game extends React.Component {
   state = {
@@ -77,60 +79,29 @@ class Game extends React.Component {
 
   hit = () => this.props.hit(Number(this.props.match.params.gameId));
   stand = () => this.props.stand(Number(this.props.match.params.gameId));
+  readyForNextRound = () => this.props.readyForNextRound(Number(this.props.match.params.gameId));
 
-  renderBettingPanel = (currentUser) => {
-    const { playerBets, pendingActions } = this.props;
-    const buttonDisabled = pendingActions[PENDING_TYPES.PLACE_BET] || playerBets.some(bet => bet.id === currentUser.id);
-    return (
-      <div className="text-center">
-        {[5, 10, 20].map(amount => (
-          <Button key={amount} className="mx-1" color="success" disabled={buttonDisabled} onClick={() => this.placeBet(amount)}>${amount}</Button>
-        ))}
-      </div>
-    )
-  }
+  renderBettingPanel = (playerMoney, playerBet) => {
+    const { pendingActions } = this.props;
+    const buttonDisabled = pendingActions[PENDING_TYPES.PLACE_BET] || !!playerBet;
 
-  renderPlayerHands = () => {
-    const { cardsInPlayerHand, playerBets, game } = this.props;
-    return (<div className="d-flex flex-column justify-content-start" style={{ height: '100%' }}>
-      {
-        cardsInPlayerHand.map((playerHand, playerIndex) => {
-          const hand = (<div className="d-flex justify-content-start">
-            {
-              playerHand.map(card => <img key={card.card_index} width="100" alt={card.revealValue || 'back'} src={`/images/cards/${card.revealValue || 'back'}.svg`} />)
-            }
-          </div>)
-          if (playerIndex > 0) {
-            const playerId = game[`player_${playerIndex}`];
-            const playerBet = playerBets.find(player => player.id === playerId).amount;
-            return (
-              <div className="mb-3" key={playerIndex}>
-                <div>${playerBet}</div>
-                {hand}
-              </div>
-
-            )
-          }
-          else return (
-            <div className="mb-3" key={playerIndex}>
-              {hand}
-            </div>
-          )
-        })
-      }
-    </div>)
+    return <BetSlider onSubmit={this.placeBet} disabled={buttonDisabled} maxValue={Math.min(50, playerMoney)} />
   }
 
   renderGameView = (currentUser) => {
-    const { cardsInPlayerHand, playerBets, game, gameState } = this.props;
+    const { cardsInPlayerHand, playerBets, playerMonies, game, gameState, handsValue, isReadyForNextRound, sending } = this.props;
     return (
       <div className="d-flex flex-column" style={{ height: '100%' }}>
-        <div id="dealer-zone" className="flex-grow-1 d-flex flex-row-reverse justify-content-center align-items-start pt-5">
-          {
-            gameState.phrase === 0
-              ? <h3 className="d-flex align-items-center" style={{ height: '100%' }}><span>Place your bet</span></h3>
-              : cardsInPlayerHand[0].map((card, index) => <img key={card.card_index} className="game-card" style={{ top: `${index * 30}px`, marginRight: `${index === 0 ? 0 : -80}px` }} width="100" alt={card.revealValue || 'back'} src={`/images/cards/${card.revealValue || 'back'}.svg`} />)
-          }
+        <div id="dealer-zone" className="flex-grow-1 d-flex flex-column">
+          <div className="text-center">Deck: {52 - gameState.top_card_index} cards left</div>
+          <div className="d-flex flex-grow-1 flex-row-reverse justify-content-center align-items-start position-relative">
+            {
+              gameState.phrase === 0
+                ? <h3 className="d-flex align-items-center" style={{ height: '100%' }}><div className="text-center">Round {gameState.round}<br />Place your bet</div></h3>
+                : cardsInPlayerHand[0].map((card, index) => <img key={card.card_index} className="game-card" style={{ top: `${index * 30}px`, marginRight: `${index === 0 ? 0 : -80}px` }} width="100" alt={card.revealValue || 'back'} src={`/images/cards/${card.revealValue || 'back'}.svg`} />)
+            }
+            {gameState.phrase > 3 && <div className="text-success" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontWeight: 700, fontSize: '3rem', textShadow: '0 0 3px rgba(0,0,0,0.8)' }}>{handsValue[0]}</div>}
+          </div>
         </div>
         <div id="players-zone" className="d-flex flex-grow-1">
           {Array.from({ length: 2 }).map((_, index) => index + 1).map(playerIndex => {
@@ -138,18 +109,20 @@ class Game extends React.Component {
             const playerId = game[`player_${playerIndex}`];
             const playerName = game[`player_${playerIndex}_name`];
             const playerBet = (playerBets.find(player => player.id === playerId) || {}).amount;
+            const playerMoney = (playerMonies.find(player => player.id === playerId) || {}).amount;
             const isCurrentPlayer = playerId === currentUser.id;
             const currentPlayerIsActivePlayer = playerIndex === gameState.phrase;
+            const playerHasUnknownCard = playerHand.some(card => card.revealValue === "")
 
             return (
               <div key={playerIndex} className="d-flex flex-column-reverse flex-grow-1 pb-5">
                 <h4 className="text-center flex-0">
-                  {`${playerName}${isCurrentPlayer ? ` (You)` : ''}`}
+                  {`${playerName}${isCurrentPlayer ? ` (You)` : ''} - $${playerMoney}`}
                 </h4>
                 <div className="flex-0 d-flex justify-content-center align-items-center" style={{ height: '3.5em' }}>
                   {
                     (gameState.phrase === 0 && isCurrentPlayer && !playerBet)
-                      ? this.renderBettingPanel(currentUser)
+                      ? this.renderBettingPanel(playerMoney, playerBet)
                       : playerBet
                         ? `Betting $${playerBet}`
                         : ' '
@@ -157,18 +130,22 @@ class Game extends React.Component {
                 </div>
                 <div className="d-flex justify-content-center align-items-center" style={{ height: '4.5em' }}>
                   {
-                    isCurrentPlayer && currentPlayerIsActivePlayer && (
+                    isCurrentPlayer && currentPlayerIsActivePlayer && !playerHasUnknownCard && (
                       <>
-                        <Button color="success mx-1" onClick={this.hit}>Hit</Button>
-                        <Button color="success mx-1" onClick={this.stand}>Stand</Button>
+                        <Button color="primary mx-1" onClick={this.hit} disabled={sending}>Hit</Button>
+                        <Button color="primary mx-1" onClick={this.stand} disabled={sending}>Stand</Button>
                       </>
                     )
                   }
+                  {gameState.phrase > 3 && isCurrentPlayer && !isReadyForNextRound && (
+                    <Button className="mx-1" color="primary" onClick={this.readyForNextRound}>Next Round</Button>
+                  )}
                 </div>
-                <div className="d-flex justify-content-center align-items-end">
+                <div className="d-flex justify-content-center align-items-end position-relative">
                   {
                     playerHand.map((card, index) => <img key={card.card_index} className="game-card" style={{ bottom: `${index * 30}px`, marginLeft: `${index === 0 ? 0 : -80}px` }} width="100" alt={card.revealValue || 'back'} src={`/images/cards/${card.revealValue || 'back'}.svg`} />)
                   }
+                  {gameState.phrase > 3 && <div className="text-success" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontWeight: 700, fontSize: '3rem', textShadow: '0 0 3px rgba(0,0,0,0.8)' }}>{handsValue[playerIndex]}</div>}
                 </div>
               </div>
             )
@@ -186,12 +163,16 @@ class Game extends React.Component {
     return (
       <Row>
         <Col lg="9" className="py-3" style={{ height: '100vh' }}>
-          {!isEmpty(game) && game.finished !== -1
-            ? (
-              <div style={{ height: '100%' }} className="d-flex justify-content-center align-items-center">
-                <div>Game has ended. Winner: {game.winner === 1 ? game.player_1_name : game.player_2_name}!</div>
-              </div>
-            ) : (gameState.phrase >= 0 && this.renderGameView(currentUser))}
+          {!isEmpty(game) && (
+            <>
+              {gameState.phrase >= 0 && this.renderGameView(currentUser)}
+              {game.finished !== -1 && (
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)' }} className="d-flex justify-content-center align-items-center">
+                  <div>Game has ended. Winner: {game.winner === 1 ? game.player_1_name : game.player_2_name}!</div>
+                </div>
+              )}
+            </>
+          )}
         </Col>
         <Col lg="3" className="d-flex flex-column justify-content-end py-3 col-lg-3" style={{ maxHeight: '100vh', background: 'rgba(0,0,0,0.2)' }}>
           <div className="flex-grow-0 d-flex justify-content-end mb-3">
@@ -245,7 +226,8 @@ const mapDispatchToProps = {
   placeBet,
   getCardFragments,
   hit,
-  stand
+  stand,
+  readyForNextRound
 };
 const mapAppStateToProps = ({ game }) => {
   const {
@@ -261,7 +243,10 @@ const mapAppStateToProps = ({ game }) => {
     gameState,
     pendingActions,
     playerBets,
-    cardsInPlayerHand
+    playerMonies,
+    cardsInPlayerHand,
+    handsValue,
+    isReadyForNextRound
   } = game;
   return {
     sending,
@@ -272,11 +257,14 @@ const mapAppStateToProps = ({ game }) => {
     game: gameInfo,
     gameState,
     playerBets,
+    playerMonies,
     messages,
     fulfilledMessages,
     pendingMessages,
     pendingActions,
-    cardsInPlayerHand
+    cardsInPlayerHand,
+    handsValue,
+    isReadyForNextRound
   }
 }
 

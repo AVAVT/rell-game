@@ -27,6 +27,7 @@ export const ACTION_TYPES = {
   POST_MESSAGE: 'game/POST_MESSAGE',
   PASS_SHUFFLED_DECK: 'game/PASS_SHUFFLED_DECK',
   PLACE_BET: 'game/PLACE_BET',
+  READY_FOR_NEXT_ROUND: 'game/READY_FOR_NEXT_ROUND',
   HIT: 'game/HIT',
   STAND: 'game/STAND',
   RESIGN: 'game/RESIGN'
@@ -116,15 +117,27 @@ export const placeBet = (gameId, round, amount) => ({
   }
 });
 
-export const hit = gameId => ({
-  type: ACTION_TYPES.HIT,
-  payload: api.hit(gameId)
-});
+export const hit = gameId => (dispatch, getState) => {
+  const state = getState().game;
+  const expectedHandSize = state.cardsInPlayerHand[state.myPlayerIndex + 1].length + 1;
+  return dispatch({
+    type: ACTION_TYPES.HIT,
+    payload: api.hit(gameId),
+    meta: {
+      expectedHandSize
+    }
+  });
+}
 
 export const stand = gameId => ({
   type: ACTION_TYPES.STAND,
   payload: api.stand(gameId)
 });
+
+export const readyForNextRound = gameId => ({
+  type: ACTION_TYPES.READY_FOR_NEXT_ROUND,
+  payload: api.readyForNextRound(gameId)
+})
 
 export const reset = () => ({
   type: ACTION_TYPES.RESET
@@ -221,6 +234,7 @@ const initialState = {
   cardCodewords: [],
   deck: [],
   cardsInPlayerHand: [[], [], []],
+  handsValue: [0, 0, 0],
   playerBets: [],
   playerMonies: [],
   pendingMessages: [],
@@ -228,6 +242,7 @@ const initialState = {
   pendingActions: {},
   sending: false,
   resigning: false,
+  isReadyForNextRound: false,
   error: null
 }
 
@@ -241,7 +256,7 @@ const reducer = (state = initialState, { type, payload, meta }) => {
         error: null
       }
     case FULFILLED(ACTION_TYPES.FETCH_STATUS):
-      const { game, messages, game_state, deck, player_monies, player_bets, cards_in_player_hand } = payload;
+      const { game, messages, game_state, deck, player_monies, player_bets, cards_in_player_hand, hands_value } = payload;
       const cardsInPlayerHand = cards_in_player_hand.map(
         playerHand => playerHand.map(cardInHand => ({
           ...cardInHand,
@@ -249,6 +264,7 @@ const reducer = (state = initialState, { type, payload, meta }) => {
         }))
       );
       const myPlayerIndex = game.player_1 === auth.getCurrentUser().id ? 0 : 1;
+      const isReadyForNextRound = game_state.phrase === 0 ? false : state.isReadyForNextRound;
       return {
         ...state,
         myPlayerIndex,
@@ -258,9 +274,11 @@ const reducer = (state = initialState, { type, payload, meta }) => {
         gameState: game_state,
         deck,
         cardsInPlayerHand,
+        handsValue: hands_value,
         playerMonies: player_monies,
         playerBets: player_bets,
-        fulfilledMessages: []
+        fulfilledMessages: [],
+        isReadyForNextRound
       }
     case REJECTED(ACTION_TYPES.FETCH_STATUS):
       return {
@@ -379,12 +397,40 @@ const reducer = (state = initialState, { type, payload, meta }) => {
         sending: true
       };
     case FULFILLED(ACTION_TYPES.HIT):
+      return {
+        ...state,
+        sending: false,
+        cardsInPlayerHand: state.cardsInPlayerHand.map(
+          (playerHand, index) => index !== (state.myPlayerIndex + 1) || playerHand.length === meta.expectedHandSize
+            ? playerHand
+            : [...playerHand, { card_index: state.gameState.top_card_index, revealValue: "" }]
+        )
+      };
     case FULFILLED(ACTION_TYPES.STAND):
+      return {
+        ...state,
+        sending: false,
+        gameState: {
+          ...state.gameState,
+          phrase: state.gameState + 1
+        }
+      };
     case REJECTED(ACTION_TYPES.HIT):
     case REJECTED(ACTION_TYPES.STAND):
       return {
         ...state,
         sending: false
+      };
+
+    case PENDING(ACTION_TYPES.READY_FOR_NEXT_ROUND):
+      return {
+        ...state,
+        isReadyForNextRound: true
+      };
+    case REJECTED(ACTION_TYPES.READY_FOR_NEXT_ROUND):
+      return {
+        ...state,
+        isReadyForNextRound: false
       };
     default: return state;
   }

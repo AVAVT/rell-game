@@ -45,10 +45,14 @@ query get_game_status(game){
   val deck = deck_card @* {game}(sort card_index = .card_index, encrypted = .encrypted, reveal_value = .reveal_value);
   val player_monies = player_money @* {game}(id=.user, amount = .amount);
   val player_bets = player_bet@*{game, .round == game_state.round}(id=.user, amount = .amount);
-  
-  var cards_in_player_hand = list<list<(card_index:integer, is_open: boolean, hand_index:integer)>>();
+  val hands_value = if(game_state.phrase > 3) [
+    calculate_player_hand_value(game, game_state.round, 0),
+    calculate_player_hand_value(game, game_state.round, 1),
+    calculate_player_hand_value(game, game_state.round, 2)
+  ] else [0,0,0];
+  var cards_in_player_hand = list<list<(card_index:integer, is_open: boolean)>>();
   for(i in range(3)){
-    val cards = card_in_player_hand@*{game, .round == game_state.round, .player_index == i}(card_index = .card_index, is_open = .is_open, sort hand_index = .hand_index);
+    val cards = card_in_player_hand@*{game, .round == game_state.round, .player_index == i}(sort card_index = .card_index, is_open = .is_open);
     cards_in_player_hand.add(cards);
   }
   
@@ -64,6 +68,7 @@ query get_game_status(game){
     player_monies = player_monies, 
     player_bets = player_bets,
     cards_in_player_hand = cards_in_player_hand,
-    card_decrypts = card_decrypts
+    card_decrypts = card_decrypts,
+    hands_value = hands_value
   );
 }
