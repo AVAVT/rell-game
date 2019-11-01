@@ -1,10 +1,10 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "92bc7f0609ae230185944c37fda48dd5",
+    "revision": "b5624c611f8dc760ff520c301a3aee6d",
     "url": "/rell-game/index.html"
   },
   {
-    "revision": "29bbc673b24a0e65691b",
+    "revision": "cd2e9bb08682d1dbe319",
     "url": "/rell-game/static/css/main.d42950d7.chunk.css"
   },
   {
@@ -12,8 +12,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/rell-game/static/js/2.63cb66b2.chunk.js"
   },
   {
-    "revision": "29bbc673b24a0e65691b",
-    "url": "/rell-game/static/js/main.1ab74e41.chunk.js"
+    "revision": "cd2e9bb08682d1dbe319",
+    "url": "/rell-game/static/js/main.e56232b7.chunk.js"
   },
   {
     "revision": "9244f50151b3a77f73d5",
