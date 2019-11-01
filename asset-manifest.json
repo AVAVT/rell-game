@@ -1,24 +1,21 @@
 {
   "files": {
-    "main.css": "/rell-game/static/css/main.f7bc442c.chunk.css",
-    "main.js": "/rell-game/static/js/main.43366d84.chunk.js",
-    "main.js.map": "/rell-game/static/js/main.43366d84.chunk.js.map",
+    "main.css": "/rell-game/static/css/main.d42950d7.chunk.css",
+    "main.js": "/rell-game/static/js/main.1ab74e41.chunk.js",
+    "main.js.map": "/rell-game/static/js/main.1ab74e41.chunk.js.map",
     "runtime-main.js": "/rell-game/static/js/runtime-main.caeb6e14.js",
     "runtime-main.js.map": "/rell-game/static/js/runtime-main.caeb6e14.js.map",
-    "static/css/2.0624914a.chunk.css": "/rell-game/static/css/2.0624914a.chunk.css",
-    "static/js/2.3177d957.chunk.js": "/rell-game/static/js/2.3177d957.chunk.js",
-    "static/js/2.3177d957.chunk.js.map": "/rell-game/static/js/2.3177d957.chunk.js.map",
+    "static/js/2.63cb66b2.chunk.js": "/rell-game/static/js/2.63cb66b2.chunk.js",
+    "static/js/2.63cb66b2.chunk.js.map": "/rell-game/static/js/2.63cb66b2.chunk.js.map",
     "index.html": "/rell-game/index.html",
-    "precache-manifest.973c06acb7d94d8b1df02b9ae3ac09fb.js": "/rell-game/precache-manifest.973c06acb7d94d8b1df02b9ae3ac09fb.js",
+    "precache-manifest.2f720614344743cdd63b456bdab97d88.js": "/rell-game/precache-manifest.2f720614344743cdd63b456bdab97d88.js",
     "service-worker.js": "/rell-game/service-worker.js",
-    "static/css/2.0624914a.chunk.css.map": "/rell-game/static/css/2.0624914a.chunk.css.map",
-    "static/css/main.f7bc442c.chunk.css.map": "/rell-game/static/css/main.f7bc442c.chunk.css.map"
+    "static/css/main.d42950d7.chunk.css.map": "/rell-game/static/css/main.d42950d7.chunk.css.map"
   },
   "entrypoints": [
     "static/js/runtime-main.caeb6e14.js",
-    "static/css/2.0624914a.chunk.css",
-    "static/js/2.3177d957.chunk.js",
-    "static/css/main.f7bc442c.chunk.css",
-    "static/js/main.43366d84.chunk.js"
+    "static/js/2.63cb66b2.chunk.js",
+    "static/css/main.d42950d7.chunk.css",
+    "static/js/main.1ab74e41.chunk.js"
   ]
 }
