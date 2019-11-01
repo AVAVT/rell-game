@@ -18,8 +18,14 @@ const RuleModal = props => (
             <li>Otherwise, when the deck runs out of card, the current round is scored immediately, no one (not even dealer) can receive any more card.</li>
           </ul>
         </li>
-        <li>Blackjack pays out 2:1, normal wins pay out 1:1.</li>
-        <li>Currently you can only hit or stand, no double up or split yet (sorry!)</li>
+        <li>
+          Other rules:
+          <ul>
+            <li>Blackjack pays out 2:1, normal wins pay out 1:1</li>
+            <li>Dealer stand at soft 17</li>
+            <li>Only hit or stand currently, no double up or split yet (sorry!)</li>
+          </ul>
+        </li>
       </ul>
     </ModalBody>
   </Modal>
